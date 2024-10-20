@@ -97,14 +97,41 @@ app.put('/tasks/:id', async (req, res) => {
   }
 });
 
-app.delete('/tasks/:id', async (req, res) => {
-  try {
-    await Task.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Task deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+app.delete('/tasks/:taskId', authenticateToken, async (req, res) => {
+    const { taskId } = req.params;
+    console.log("deleted")
+
+    // Ensure req.user is populated by the authenticateToken middleware
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    console.log("odkocodck")
+
+    const user = await User.findById(req.user._id); // First, find the user
+
+if (user) {
+    // Find the index of the task with the given taskId
+    const taskIndex = user.tasks.findIndex(task => task._id.toString() === taskId);
+
+    if (taskIndex > -1) {
+        // Remove the task from the user's tasks array
+        const removedTask = user.tasks[taskIndex]; // Get the task to return if needed
+        user.tasks.splice(taskIndex, 1); // Remove the task
+
+        // Save the updated user document
+        await user.save();
+        
+        // You can return the removed task or the updated user document
+        res.json({ message: 'Task deleted', removedTask });
+    } else {
+        res.status(404).json({ message: 'Task not found' });
+    }
+} else {
+    res.status(404).json({ message: 'User not found' });
+}
+
 });
+
 
 app.post('/register', async (req, res) => {
     console.log("registwr api")
@@ -112,7 +139,7 @@ app.post('/register', async (req, res) => {
       const user = new User(req.body);
       console.log("user");
       await user.save();
-      console.log("Save");
+      console.log("Save", user);
       const token = user.generateAuthToken();
       console.log("Token");
       res.send({ token, user: { id: user._id, username: user.username } });
