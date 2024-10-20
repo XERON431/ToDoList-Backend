@@ -110,9 +110,13 @@ app.post('/register', async (req, res) => {
     console.log("registwr api")
     try {
       const user = new User(req.body);
+      console.log("user");
       await user.save();
+      console.log("Save");
       const token = user.generateAuthToken();
+      console.log("Token");
       res.send({ token, user: { id: user._id, username: user.username } });
+      console.log("Sending");
     //   res.status(201).send({ token });
     } catch (error) {
       res.status(400).send(error);
