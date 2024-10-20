@@ -22,9 +22,11 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Define the Task schema
 const taskSchema = new mongoose.Schema({
-  text: String,
-  completed: Boolean,
-});
+    text: { type: String, required: true },
+    completed: { type: Boolean, default: false },
+    startTime: { type: Date },  // New field for start time
+    endTime: { type: Date },    // New field for end time
+  });
 
 const Task = mongoose.model('Task', taskSchema);
 
